@@ -25,12 +25,6 @@ class QueryAuditor extends LazyLogging {
       case Some(ref: TableReference) => Some(ref)
       case Some(alias: TableAlias)   => Some(alias.table)
       case Some(subquery: Subquery) =>
-        val innerColumnsBuffer = scala.collection.mutable.ArrayBuffer[String]()
-        parseColumns(
-          subquery.query.columns,
-          subquery.query.from,
-          innerColumnsBuffer
-        )
         parseColumns(subquery.query.columns, Some(subquery), columnsBuffer)
         parseTable(subquery.query.from, columnsBuffer)
       case None => None
@@ -84,11 +78,13 @@ class QueryAuditor extends LazyLogging {
     }
   }
 
-  /**
-    * Audit a SQL query.
+  /** Audit a SQL query.
     *
-    * @param sql The sql string to audit.
-    * @return A QueryAuditResult with the schema, table, and columns (assuming any exist).
+    * @param sql
+    *   The sql string to audit.
+    * @return
+    *   A QueryAuditResult with the schema, table, and columns (assuming any
+    *   exist).
     */
   def audit(sql: String): Try[QueryAuditResult] = {
     Try(parser.parse(sql))
